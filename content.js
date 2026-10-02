@@ -115,12 +115,37 @@ function updateCards() {
                 const isPlusIcon = /M12\s*8v8M8\s*12h8/i.test(html) || /M19\s*13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z/i.test(html);
                 
                 if (!isPlusIcon) {
-                     // Check computed styles and inline html for the yellow color
-                     const compStyle = window.getComputedStyle(svg);
-                     const isYellow = /#f57c00/i.test(html) || 
-                                      /rgb\(245,\s*124,\s*0\)/i.test(html) || 
-                                      (compStyle.color && compStyle.color.includes('245, 124, 0')) || 
-                                      (compStyle.fill && compStyle.fill.includes('245, 124, 0'));
+                     // Check computed styles of highlighter and all its children for the yellow color
+                     let isYellow = false;
+                     const elements = [highlighter, ...Array.from(highlighter.querySelectorAll('*'))];
+                     
+                     for (let el of elements) {
+                         const compStyle = window.getComputedStyle(el);
+                         const colorStr = (compStyle.color + ' ' + compStyle.fill).toLowerCase();
+                         
+                         // Check for exact rgb(245, 124, 0) or anything close to orange/yellow
+                         if (colorStr.includes('245, 124, 0') || colorStr.includes('#f57c00')) {
+                             isYellow = true;
+                             break;
+                         }
+                         
+                         // Fallback heuristic for yellow/orange RGB values
+                         const matches = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g);
+                         if (matches) {
+                             for (let m of matches) {
+                                 const [r, g, b] = m.match(/\d+/g).map(Number);
+                                 if (r > 200 && g > 100 && g < 200 && b < 100) {
+                                     isYellow = true;
+                                 }
+                             }
+                         }
+                     }
+                     
+                     // Also check class names just in case Anichart adds a status class
+                     const hClass = highlighter.className.toLowerCase();
+                     if (hClass.includes('planning') || hClass.includes('maybe')) {
+                         isYellow = true;
+                     }
                      
                      if (isYellow) {
                          status = 'maybe';
