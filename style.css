@@ -1,7 +1,14 @@
 /* Hide unmarked anime by default, overridden by body.hide-unmarked */
 /* Hide unmarked anime by default, overridden by body.hide-unmarked */
 body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe) {
-  display: none !important;
+  position: absolute !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
 }
 
 /* Sorting: Push watching and maybe to the front of the grid */

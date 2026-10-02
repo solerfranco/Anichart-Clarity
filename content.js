@@ -110,19 +110,23 @@ function updateCards() {
             const svg = highlighter.querySelector('svg');
             if (svg) {
                 const html = svg.innerHTML;
-                const lowerHtml = html.toLowerCase();
                 
                 // The default '+' icon has this exact path:
                 if (!html.includes('M12 8v8M8 12h8')) {
-                     // Check for yellow/orange colors that indicate "Maybe/Planning"
-                     if (lowerHtml.match(/#e6a23c|#f5a623|#ffc107|#ff9800|#f39c12|#e67e22|orange|yellow/) ||
-                         card.className.toLowerCase().includes('maybe') ||
-                         highlighter.className.toLowerCase().includes('maybe') ||
-                         card.className.toLowerCase().includes('planning') ||
-                         highlighter.className.toLowerCase().includes('planning')) {
+                     // Check if it's exactly the green checkmark
+                     const isCheckmark = html.includes('M9 16.17') || html.includes('L9 19 21 7') || html.includes('#68D93C') || html.includes('#4caf50');
+                     
+                     // Also broadly check if "maybe" is anywhere in the card
+                     const cardHtml = card.outerHTML.toLowerCase();
+                     const hasMaybeText = cardHtml.includes('maybe');
+                     
+                     if (hasMaybeText) {
                          status = 'maybe';
-                     } else {
+                     } else if (isCheckmark) {
                          status = 'watching';
+                     } else {
+                         // If it's not a checkmark and we don't know what it is, assume maybe
+                         status = 'maybe';
                      }
                 }
             }
@@ -198,20 +202,20 @@ function addEmissionTags(card) {
         const match = text.match(/Ep (\d+)/i);
         if (match) {
             epNum = parseInt(match[1]);
-        } else if (text.toLowerCase().includes('airing on') || text.toLowerCase().includes('airing in')) {
-            isUpcoming = true;
         }
     }
 
     if (!epNum && !isUpcoming) {
-        // Fallback: search for a div containing "Airing on"
-        const allDivs = Array.from(card.querySelectorAll('div'));
-        for (let div of allDivs) {
-            const text = div.textContent.trim().toLowerCase();
-            if (text === 'airing on' || text.startsWith('airing on ') || text.startsWith('airing in ')) {
-                targetNode = div;
-                isUpcoming = true;
-                break;
+        // Fallback: search for any element containing exactly "Airing on" or "Airing in"
+        const allEls = Array.from(card.querySelectorAll('*'));
+        for (let el of allEls) {
+            if (el.children.length === 0) {
+                const text = el.textContent.trim().toLowerCase();
+                if (text === 'airing on' || text === 'airing in') {
+                    targetNode = el;
+                    isUpcoming = true;
+                    break;
+                }
             }
         }
     }
