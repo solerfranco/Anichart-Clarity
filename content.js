@@ -111,48 +111,19 @@ function updateCards() {
             if (svg) {
                 const html = svg.innerHTML;
                 
-                // Case-insensitive regex for the Unmarked '+' icon
-                const isPlusIcon = /M12\s*8v8M8\s*12h8/i.test(html) || /M19\s*13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z/i.test(html);
+                // Exact SVG path for Maybe Watching (Question Mark / Circle)
+                const isMaybe = html.includes('M700 350c0 193.3-156.7 350-350 350') || html.includes('M345.408 175c-56.255');
                 
-                if (!isPlusIcon) {
-                     // Check computed styles of highlighter and all its children for the yellow color
-                     let isYellow = false;
-                     const elements = [highlighter, ...Array.from(highlighter.querySelectorAll('*'))];
-                     
-                     for (let el of elements) {
-                         const compStyle = window.getComputedStyle(el);
-                         const colorStr = (compStyle.color + ' ' + compStyle.fill).toLowerCase();
-                         
-                         // Check for exact rgb(245, 124, 0) or anything close to orange/yellow
-                         if (colorStr.includes('245, 124, 0') || colorStr.includes('#f57c00')) {
-                             isYellow = true;
-                             break;
-                         }
-                         
-                         // Fallback heuristic for yellow/orange RGB values
-                         const matches = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g);
-                         if (matches) {
-                             for (let m of matches) {
-                                 const [r, g, b] = m.match(/\d+/g).map(Number);
-                                 if (r > 200 && g > 100 && g < 200 && b < 100) {
-                                     isYellow = true;
-                                 }
-                             }
-                         }
-                     }
-                     
-                     // Also check class names just in case Anichart adds a status class
-                     const hClass = highlighter.className.toLowerCase();
-                     if (hClass.includes('planning') || hClass.includes('maybe')) {
-                         isYellow = true;
-                     }
-                     
-                     if (isYellow) {
-                         status = 'maybe';
-                     } else {
-                         // Must be the green checkmark (or another marked state)
-                         status = 'watching';
-                     }
+                // Exact SVG path for Watching (Checkmark / Circle)
+                const isWatching = html.includes('M350 700c193.3 0 350-156.7 350-350') || html.includes('155.314-419.059l-184 184');
+                
+                if (isMaybe) {
+                    status = 'maybe';
+                } else if (isWatching) {
+                    status = 'watching';
+                } else {
+                    // Fallback to none (unmarked) if it's the + icon or anything else
+                    status = 'none';
                 }
             }
         }
@@ -298,8 +269,26 @@ const observer = new MutationObserver((mutations) => {
     }
 });
 
+function forceAutoLoad() {
+    // Invisibly scroll down and dispatch scroll events to trigger Anichart's lazy loading
+    const originalScroll = window.scrollY;
+    
+    window.scrollTo(0, document.body.scrollHeight || 5000);
+    window.dispatchEvent(new CustomEvent('scroll'));
+    
+    setTimeout(() => {
+        window.scrollTo(0, originalScroll);
+        window.dispatchEvent(new CustomEvent('scroll'));
+    }, 50);
+}
+
 window.addEventListener('load', () => {
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'd', 'stroke', 'fill'] });
+    
+    setTimeout(() => {
+        forceAutoLoad();
+    }, 500); // Wait for Anichart Vue to mount
+    
     updateCards();
     injectToggle();
 });
