@@ -109,21 +109,23 @@ function updateCards() {
         if (highlighter) {
             const svg = highlighter.querySelector('svg');
             if (svg) {
-                const html = svg.innerHTML;
-                
-                // Exact SVG path for Maybe Watching (Question Mark / Circle)
-                const isMaybe = html.includes('M700 350c0 193.3-156.7 350-350 350') || html.includes('M345.408 175c-56.255');
-                
-                // Exact SVG path for Watching (Checkmark / Circle)
-                const isWatching = html.includes('M350 700c193.3 0 350-156.7 350-350') || html.includes('155.314-419.059l-184 184');
-                
-                if (isMaybe) {
-                    status = 'maybe';
-                } else if (isWatching) {
-                    status = 'watching';
-                } else {
-                    // Fallback to none (unmarked) if it's the + icon or anything else
-                    status = 'none';
+                const path = svg.querySelector('path');
+                if (path) {
+                    const d = (path.getAttribute('d') || '').replace(/[\s,]+/g, '').toLowerCase();
+                    
+                    // Exact SVG path for Maybe Watching (Question Mark / Circle)
+                    const isMaybe = d.includes('m700350c0193.3-156.7350-350350') || d.includes('m345.408175c-56.255');
+                    
+                    // Exact SVG path for Watching (Checkmark / Circle)
+                    const isWatching = d.includes('m350700c193.30350-156.7350-350') || d.includes('155.314-419.059l-184184');
+                    
+                    if (isMaybe) {
+                        status = 'maybe';
+                    } else if (isWatching) {
+                        status = 'watching';
+                    } else {
+                        status = 'none';
+                    }
                 }
             }
         }
@@ -270,28 +272,19 @@ const observer = new MutationObserver((mutations) => {
 });
 
 function forceAutoLoad() {
-    // To trigger Anichart's IntersectionObserver without moving the scrollbar,
-    // we temporarily move all anime cards into the viewport using CSS.
-    
-    // Prevent the scrollbar from jumping by locking the body height temporarily
-    const currentHeight = document.body.scrollHeight;
-    document.body.style.minHeight = currentHeight + 'px';
-    
-    document.body.classList.add('force-lazy-load');
-    
-    setTimeout(() => {
-        document.body.classList.remove('force-lazy-load');
-        document.body.style.minHeight = '';
-    }, 150); // 150ms is plenty of time for IntersectionObserver to fire
+    // We already moved the hidden elements to position: fixed via CSS!
+    // But Anichart might only check for intersections on 'scroll' events.
+    // So we just dispatch a few scroll events transparently without actually moving the page!
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('scroll'));
+        }, i * 200);
+    }
 }
 
 window.addEventListener('load', () => {
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'd', 'stroke', 'fill'] });
-    
-    setTimeout(() => {
-        forceAutoLoad();
-    }, 500); // Wait for Anichart Vue to mount
-    
     updateCards();
     injectToggle();
+    forceAutoLoad();
 });
