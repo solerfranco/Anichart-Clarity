@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Anichart Clarity",
+  "version": "1.0",
+  "description": "Enhances Anichart with filtering, highlighting, and emission status tags.",
+  "content_scripts": [
+    {
+      "matches": ["*://anichart.net/*", "*://www.anichart.net/*"],
+      "css": ["style.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Toggle Watching Visibility"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage"]
+}

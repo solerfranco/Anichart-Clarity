@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+npm-debug.log
+
+# Mac OS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Archives
+*.zip
+*.tar.gz

@@ -1,0 +1,95 @@
+/* Hide unmarked anime by default, overridden by body.hide-unmarked */
+body.hide-unmarked .media-card:not(.is-watching) {
+  display: none !important;
+}
+.media-card.is-watched .footer,
+.media-card.is-watching .footer {
+  background-color: #1b5e20 !important; /* Dark Green for contrast */
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Emission Tag Styles */
+.emission-tag {
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 8px;
+  display: inline-block;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.emission-tag.not-started {
+  background-color: #f57c00; /* Orange/Yellow for not started */
+  color: white;
+}
+
+.emission-tag.emitting {
+  background-color: #388e3c; /* Green for emitting */
+  color: white;
+}
+
+.episode {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.header > div > div:first-child {
+  /* This is the container of .episode and .countdown in some cases, or their parent */
+  /* We will just ensure the parent of episode handles the inline if needed, but since episode is block by default, inline-block fixes it */
+}
+
+
+/* Toggle Switch CSS */
+.clarity-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.clarity-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.clarity-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.clarity-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .clarity-slider {
+  background-color: #2e7d32;
+}
+
+input:focus + .clarity-slider {
+  box-shadow: 0 0 1px #2e7d32;
+}
+
+input:checked + .clarity-slider:before {
+  transform: translateX(18px);
+}
+
+
