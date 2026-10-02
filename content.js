@@ -110,23 +110,16 @@ function updateCards() {
             const svg = highlighter.querySelector('svg');
             if (svg) {
                 const html = svg.innerHTML;
+                const lowerHtml = html.toLowerCase();
                 
                 // The default '+' icon has this exact path:
                 if (!html.includes('M12 8v8M8 12h8')) {
-                     // Check if it's exactly the green checkmark
-                     const isCheckmark = html.includes('M9 16.17') || html.includes('L9 19 21 7') || html.includes('#68D93C') || html.includes('#4caf50');
-                     
-                     // Also broadly check if "maybe" is anywhere in the card
-                     const cardHtml = card.outerHTML.toLowerCase();
-                     const hasMaybeText = cardHtml.includes('maybe');
-                     
-                     if (hasMaybeText) {
+                     // Check if it's the exact yellow color provided by the user
+                     if (lowerHtml.includes('#f57c00') || lowerHtml.includes('rgb(245, 124, 0)') || lowerHtml.includes('planning')) {
                          status = 'maybe';
-                     } else if (isCheckmark) {
-                         status = 'watching';
                      } else {
-                         // If it's not a checkmark and we don't know what it is, assume maybe
-                         status = 'maybe';
+                         // If it's not the default + and not yellow, it must be the green checkmark
+                         status = 'watching';
                      }
                 }
             }
@@ -162,7 +155,6 @@ function updateCards() {
     });
 
     cardContainers.forEach(container => {
-        // Find visible cards in this container
         const containerCards = container.querySelectorAll('.media-card');
         if (containerCards.length === 0) return;
 
@@ -176,10 +168,8 @@ function updateCards() {
             }
         }
         
-        // Hide the grid container itself
         container.style.display = hasVisible ? '' : 'none';
         
-        // Hide the category title (e.g. "TV", "Movies") that appears right before the grid
         let prev = container.previousElementSibling;
         while (prev && (prev.tagName === 'BR' || prev.tagName === 'HR' || prev.classList.contains('ad-container'))) {
              prev = prev.previousElementSibling;
@@ -202,21 +192,18 @@ function addEmissionTags(card) {
         const match = text.match(/Ep (\d+)/i);
         if (match) {
             epNum = parseInt(match[1]);
+        } else if (text.match(/airing\s+(on|in)/i)) {
+            // Catches "Airing on", "Airing  on" (with two spaces), and "Airing in"
+            isUpcoming = true;
         }
     }
 
     if (!epNum && !isUpcoming) {
-        // Fallback: search for any element containing exactly "Airing on" or "Airing in"
-        const allEls = Array.from(card.querySelectorAll('*'));
-        for (let el of allEls) {
-            if (el.children.length === 0) {
-                const text = el.textContent.trim().toLowerCase();
-                if (text === 'airing on' || text === 'airing in') {
-                    targetNode = el;
-                    isUpcoming = true;
-                    break;
-                }
-            }
+        // Fallback: search for any div containing airing text
+        const airingDiv = card.querySelector('.airing');
+        if (airingDiv && airingDiv.textContent.match(/airing\s+(on|in)/i)) {
+            targetNode = airingDiv;
+            isUpcoming = true;
         }
     }
 
@@ -232,8 +219,8 @@ function addEmissionTags(card) {
             tag.textContent = 'UPCOMING';
         }
         
-        if (targetNode && targetNode.parentNode) {
-            targetNode.parentNode.insertBefore(tag, targetNode);
+        if (targetNode) {
+            targetNode.insertBefore(tag, targetNode.firstChild);
         }
     }
 }
@@ -271,8 +258,26 @@ const observer = new MutationObserver((mutations) => {
     }
 });
 
+function forceAutoLoad() {
+    // Invisibly scroll down and dispatch scroll events to trigger Anichart's lazy loading
+    const originalScroll = window.scrollY;
+    
+    window.scrollTo(0, document.body.scrollHeight || 5000);
+    window.dispatchEvent(new CustomEvent('scroll'));
+    
+    setTimeout(() => {
+        window.scrollTo(0, originalScroll);
+        window.dispatchEvent(new CustomEvent('scroll'));
+    }, 50);
+}
+
 window.addEventListener('load', () => {
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'd', 'stroke', 'fill'] });
+    
+    setTimeout(() => {
+        forceAutoLoad();
+    }, 500); // Wait for Anichart Vue to mount
+    
     updateCards();
     injectToggle();
 });
