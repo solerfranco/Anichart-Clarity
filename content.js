@@ -270,16 +270,19 @@ const observer = new MutationObserver((mutations) => {
 });
 
 function forceAutoLoad() {
-    // Invisibly scroll down and dispatch scroll events to trigger Anichart's lazy loading
-    const originalScroll = window.scrollY;
+    // To trigger Anichart's IntersectionObserver without moving the scrollbar,
+    // we temporarily move all anime cards into the viewport using CSS.
     
-    window.scrollTo(0, document.body.scrollHeight || 5000);
-    window.dispatchEvent(new CustomEvent('scroll'));
+    // Prevent the scrollbar from jumping by locking the body height temporarily
+    const currentHeight = document.body.scrollHeight;
+    document.body.style.minHeight = currentHeight + 'px';
+    
+    document.body.classList.add('force-lazy-load');
     
     setTimeout(() => {
-        window.scrollTo(0, originalScroll);
-        window.dispatchEvent(new CustomEvent('scroll'));
-    }, 50);
+        document.body.classList.remove('force-lazy-load');
+        document.body.style.minHeight = '';
+    }, 150); // 150ms is plenty of time for IntersectionObserver to fire
 }
 
 window.addEventListener('load', () => {
