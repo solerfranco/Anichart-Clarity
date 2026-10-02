@@ -110,15 +110,22 @@ function updateCards() {
             const svg = highlighter.querySelector('svg');
             if (svg) {
                 const html = svg.innerHTML;
-                const lowerHtml = html.toLowerCase();
                 
-                // The default '+' icon has this exact path:
-                if (!html.includes('M12 8v8M8 12h8')) {
-                     // Check if it's the exact yellow color provided by the user
-                     if (lowerHtml.includes('#f57c00') || lowerHtml.includes('rgb(245, 124, 0)') || lowerHtml.includes('planning')) {
+                // Case-insensitive regex for the Unmarked '+' icon
+                const isPlusIcon = /M12\s*8v8M8\s*12h8/i.test(html) || /M19\s*13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z/i.test(html);
+                
+                if (!isPlusIcon) {
+                     // Check computed styles and inline html for the yellow color
+                     const compStyle = window.getComputedStyle(svg);
+                     const isYellow = /#f57c00/i.test(html) || 
+                                      /rgb\(245,\s*124,\s*0\)/i.test(html) || 
+                                      (compStyle.color && compStyle.color.includes('245, 124, 0')) || 
+                                      (compStyle.fill && compStyle.fill.includes('245, 124, 0'));
+                     
+                     if (isYellow) {
                          status = 'maybe';
                      } else {
-                         // If it's not the default + and not yellow, it must be the green checkmark
+                         // Must be the green checkmark (or another marked state)
                          status = 'watching';
                      }
                 }
@@ -168,14 +175,22 @@ function updateCards() {
             }
         }
         
-        container.style.display = hasVisible ? '' : 'none';
+        if (hasVisible) {
+            container.classList.remove('anichart-hidden-category');
+        } else {
+            container.classList.add('anichart-hidden-category');
+        }
         
         let prev = container.previousElementSibling;
         while (prev && (prev.tagName === 'BR' || prev.tagName === 'HR' || prev.classList.contains('ad-container'))) {
              prev = prev.previousElementSibling;
         }
         if (prev && (prev.tagName.match(/^H\d$/) || prev.classList.contains('title') || prev.classList.contains('heading'))) {
-            prev.style.display = hasVisible ? '' : 'none';
+            if (hasVisible) {
+                prev.classList.remove('anichart-hidden-category');
+            } else {
+                prev.classList.add('anichart-hidden-category');
+            }
         }
     });
 }
@@ -258,26 +273,8 @@ const observer = new MutationObserver((mutations) => {
     }
 });
 
-function forceAutoLoad() {
-    // Invisibly scroll down and dispatch scroll events to trigger Anichart's lazy loading
-    const originalScroll = window.scrollY;
-    
-    window.scrollTo(0, document.body.scrollHeight || 5000);
-    window.dispatchEvent(new CustomEvent('scroll'));
-    
-    setTimeout(() => {
-        window.scrollTo(0, originalScroll);
-        window.dispatchEvent(new CustomEvent('scroll'));
-    }, 50);
-}
-
 window.addEventListener('load', () => {
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'd', 'stroke', 'fill'] });
-    
-    setTimeout(() => {
-        forceAutoLoad();
-    }, 500); // Wait for Anichart Vue to mount
-    
     updateCards();
     injectToggle();
 });

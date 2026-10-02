@@ -1,14 +1,25 @@
 /* Hide unmarked anime by default, overridden by body.hide-unmarked */
-/* Hide unmarked anime by default, overridden by body.hide-unmarked */
 body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe) {
   position: absolute !important;
-  visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
   z-index: -1 !important;
   width: 1px !important;
   height: 1px !important;
   overflow: hidden !important;
+}
+
+/* Hide empty categories without using display: none to preserve lazy loading */
+.anichart-hidden-category {
+  height: 1px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  position: absolute !important;
+  pointer-events: none !important;
 }
 
 /* Sorting: Push watching and maybe to the front of the grid */
