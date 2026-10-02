@@ -1,10 +1,27 @@
 /* Hide unmarked anime by default, overridden by body.hide-unmarked */
-body.hide-unmarked .media-card:not(.is-watching) {
+/* Hide unmarked anime by default, overridden by body.hide-unmarked */
+body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe) {
   display: none !important;
 }
-.media-card.is-watched .footer,
+
+/* Sorting: Push watching and maybe to the front of the grid */
+.media-card.is-watching {
+  order: -2 !important;
+}
+.media-card.is-maybe {
+  order: -1 !important;
+}
+
+/* Change background of footer for watched/watching animes */
 .media-card.is-watching .footer {
-  background-color: #1b5e20 !important; /* Dark Green for contrast */
+  background-color: #1b5e20 !important; /* Dark Green */
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Change background of footer for maybe watching animes */
+.media-card.is-maybe .footer {
+  background-color: #f57c00 !important; /* Yellow/Orange */
   border-bottom-left-radius: inherit;
   border-bottom-right-radius: inherit;
 }

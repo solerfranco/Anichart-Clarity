@@ -104,38 +104,86 @@ function updateCards() {
     
     cards.forEach(card => {
         const highlighter = card.querySelector('.highlighter');
-        let isMarked = false;
+        let status = 'none'; // 'none', 'watching', 'maybe'
         
         if (highlighter) {
             const svg = highlighter.querySelector('svg');
             if (svg) {
                 const html = svg.innerHTML;
+                const lowerHtml = html.toLowerCase();
+                
                 // The default '+' icon has this exact path:
                 if (!html.includes('M12 8v8M8 12h8')) {
-                     isMarked = true;
+                     // Check for yellow/orange colors that indicate "Maybe/Planning"
+                     if (lowerHtml.match(/#e6a23c|#f5a623|#ffc107|#ff9800|#f39c12|#e67e22|orange|yellow/) ||
+                         card.className.toLowerCase().includes('maybe') ||
+                         highlighter.className.toLowerCase().includes('maybe') ||
+                         card.className.toLowerCase().includes('planning') ||
+                         highlighter.className.toLowerCase().includes('planning')) {
+                         status = 'maybe';
+                     } else {
+                         status = 'watching';
+                     }
                 }
             }
         }
         
-        if (isMarked) {
+        if (status === 'watching') {
             card.classList.add('is-watching');
+            card.classList.remove('is-maybe');
+            markedCount++;
+        } else if (status === 'maybe') {
+            card.classList.add('is-maybe');
+            card.classList.remove('is-watching');
             markedCount++;
         } else {
             card.classList.remove('is-watching');
+            card.classList.remove('is-maybe');
         }
         
         addEmissionTags(card);
     });
     
-    // Update body classes based on toggle and markedCount
-    // If markedCount === 0, we force show everything.
+    // Hide unmarked body toggle
     if (hideUnmarked && markedCount > 0) {
         document.body.classList.add('hide-unmarked');
     } else {
         document.body.classList.remove('hide-unmarked');
     }
-    
-    syncToggleUI();
+
+    // Hide empty categories when filtering
+    const cardContainers = new Set();
+    cards.forEach(c => {
+        if (c.parentElement) cardContainers.add(c.parentElement);
+    });
+
+    cardContainers.forEach(container => {
+        // Find visible cards in this container
+        const containerCards = container.querySelectorAll('.media-card');
+        if (containerCards.length === 0) return;
+
+        let hasVisible = !hideUnmarked || markedCount === 0;
+        if (!hasVisible) {
+            for (let c of containerCards) {
+                if (c.classList.contains('is-watching') || c.classList.contains('is-maybe')) {
+                    hasVisible = true;
+                    break;
+                }
+            }
+        }
+        
+        // Hide the grid container itself
+        container.style.display = hasVisible ? '' : 'none';
+        
+        // Hide the category title (e.g. "TV", "Movies") that appears right before the grid
+        let prev = container.previousElementSibling;
+        while (prev && (prev.tagName === 'BR' || prev.tagName === 'HR' || prev.classList.contains('ad-container'))) {
+             prev = prev.previousElementSibling;
+        }
+        if (prev && (prev.tagName.match(/^H\d$/) || prev.classList.contains('title') || prev.classList.contains('heading'))) {
+            prev.style.display = hasVisible ? '' : 'none';
+        }
+    });
 }
 
 function addEmissionTags(card) {
