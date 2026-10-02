@@ -187,15 +187,36 @@ function updateCards() {
 }
 
 function addEmissionTags(card) {
-    const episodeDiv = card.querySelector('.episode');
-    if (!episodeDiv) return;
-    
-    if (episodeDiv.parentElement.querySelector('.emission-tag')) return;
-    
-    const text = episodeDiv.textContent;
-    const match = text.match(/Ep (\d+)/i);
-    if (match) {
-        const epNum = parseInt(match[1]);
+    if (card.querySelector('.emission-tag')) return;
+
+    let targetNode = card.querySelector('.episode');
+    let epNum = null;
+    let isUpcoming = false;
+
+    if (targetNode) {
+        const text = targetNode.textContent;
+        const match = text.match(/Ep (\d+)/i);
+        if (match) {
+            epNum = parseInt(match[1]);
+        } else if (text.toLowerCase().includes('airing on') || text.toLowerCase().includes('airing in')) {
+            isUpcoming = true;
+        }
+    }
+
+    if (!epNum && !isUpcoming) {
+        // Fallback: search for a div containing "Airing on"
+        const allDivs = Array.from(card.querySelectorAll('div'));
+        for (let div of allDivs) {
+            const text = div.textContent.trim().toLowerCase();
+            if (text === 'airing on' || text.startsWith('airing on ') || text.startsWith('airing in ')) {
+                targetNode = div;
+                isUpcoming = true;
+                break;
+            }
+        }
+    }
+
+    if (epNum !== null || isUpcoming) {
         const tag = document.createElement('span');
         tag.classList.add('emission-tag');
         
@@ -207,7 +228,9 @@ function addEmissionTags(card) {
             tag.textContent = 'UPCOMING';
         }
         
-        episodeDiv.parentNode.insertBefore(tag, episodeDiv);
+        if (targetNode && targetNode.parentNode) {
+            targetNode.parentNode.insertBefore(tag, targetNode);
+        }
     }
 }
 
