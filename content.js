@@ -240,6 +240,18 @@ function addEmissionTags(card) {
 
 let updateTimeout = null;
 
+function triggerLazyLoad() {
+    const events = ['scroll', 'resize', 'wheel', 'transitionend'];
+    const targets = [window, document, document.body, ...Array.from(document.querySelectorAll('.cards')), ...Array.from(document.querySelectorAll('.group'))];
+    
+    targets.forEach(target => {
+        if (!target) return;
+        events.forEach(e => {
+            try { target.dispatchEvent(new Event(e, { bubbles: true })); } catch(e){}
+        });
+    });
+}
+
 const observer = new MutationObserver((mutations) => {
     let shouldUpdate = false;
     for (let mut of mutations) {
@@ -267,21 +279,18 @@ const observer = new MutationObserver((mutations) => {
         updateTimeout = setTimeout(() => {
             updateCards();
             injectToggle();
-            // Chain reaction: every time a batch of cards finishes loading, we dispatch 
-            // a scroll event to instantly force Anichart to fetch the next batch.
-            window.dispatchEvent(new CustomEvent('scroll'));
+            // Chain reaction
+            triggerLazyLoad();
         }, 100);
     }
 });
 
 function forceAutoLoad() {
-    // We already moved the hidden elements to position: fixed via CSS!
-    // Dispatch scroll events periodically for the first 10 seconds to prime the lazy load queue
     let count = 0;
     const interval = setInterval(() => {
-        window.dispatchEvent(new CustomEvent('scroll'));
+        triggerLazyLoad();
         count++;
-        if (count > 40) clearInterval(interval); // 40 * 250ms = 10 seconds
+        if (count > 40) clearInterval(interval); // 10 seconds
     }, 250);
 }
 
