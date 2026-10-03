@@ -252,18 +252,29 @@ function showSpinner() {
     }
     
     spinner.classList.add('is-loading');
-    document.body.classList.add('clarity-syncing'); // Forces cards to position: fixed so they load
     
     if (spinnerTimeout) clearTimeout(spinnerTimeout);
     spinnerTimeout = setTimeout(() => {
         const s = document.querySelector('.clarity-spinner-container');
         if (s) s.classList.remove('is-loading');
-        document.body.classList.remove('clarity-syncing'); // Removes position: fixed, placing them back in grid
     }, 1500); // 1.5s of no DOM updates means it's done
 }
 
 function triggerLazyLoad() {
     showSpinner();
+    
+    // We cannot use position: fixed when the toggle is off because the user wants the cards to remain visible.
+    // Instead, we force Anichart to load them by synchronously scrolling to the bottom of the page and instantly 
+    // jumping back. Because we jump back in the exact same execution frame, the browser does not have time 
+    // to paint the scrolled state, making the jump 100% invisible to the user.
+    
+    const origX = window.scrollX;
+    const origY = window.scrollY;
+    
+    // Jump to bottom to bring everything into the viewport
+    window.scrollTo({ left: 0, top: 99999, behavior: 'instant' });
+    
+    // Synchronously dispatch scroll events while at the bottom
     const events = ['scroll', 'resize', 'wheel', 'transitionend'];
     const targets = [window, document, document.body, ...Array.from(document.querySelectorAll('.cards')), ...Array.from(document.querySelectorAll('.group'))];
     
@@ -273,6 +284,9 @@ function triggerLazyLoad() {
             try { target.dispatchEvent(new Event(e, { bubbles: true })); } catch(e){}
         });
     });
+    
+    // Instantly jump back to the original position
+    window.scrollTo({ left: origX, top: origY, behavior: 'instant' });
 }
 
 const observer = new MutationObserver((mutations) => {
