@@ -131,4 +131,34 @@ input:checked + .clarity-slider:before {
   transform: translateX(18px);
 }
 
+/* Spinner CSS */
+.clarity-spinner-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 15px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.clarity-spinner-container.is-loading {
+  opacity: 1;
+}
+.clarity-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-top-color: #2e7d32;
+  border-radius: 50%;
+  animation: clarity-spin 1s linear infinite;
+}
+.clarity-spinner-text {
+  font-size: 0.85rem;
+  color: #888;
+  font-weight: normal;
+}
+@keyframes clarity-spin {
+  to { transform: rotate(360deg); }
+}
+
 

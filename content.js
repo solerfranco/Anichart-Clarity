@@ -78,6 +78,11 @@ function createBtn() {
     switchLabel.appendChild(checkbox);
     switchLabel.appendChild(slider);
     btnWrap.appendChild(switchLabel);
+    
+    const spinnerWrap = document.createElement('div');
+    spinnerWrap.className = 'clarity-spinner-container';
+    spinnerWrap.innerHTML = '<div class="clarity-spinner"></div><span class="clarity-spinner-text">Syncing...</span>';
+    btnWrap.appendChild(spinnerWrap);
 
     return btnWrap;
 }
@@ -239,8 +244,21 @@ function addEmissionTags(card) {
 }
 
 let updateTimeout = null;
+let spinnerTimeout = null;
+
+function showSpinner() {
+    const spinner = document.querySelector('.clarity-spinner-container');
+    if (spinner) spinner.classList.add('is-loading');
+    
+    if (spinnerTimeout) clearTimeout(spinnerTimeout);
+    spinnerTimeout = setTimeout(() => {
+        const s = document.querySelector('.clarity-spinner-container');
+        if (s) s.classList.remove('is-loading');
+    }, 1500); // 1.5s of no DOM updates means it's done
+}
 
 function triggerLazyLoad() {
+    showSpinner();
     const events = ['scroll', 'resize', 'wheel', 'transitionend'];
     const targets = [window, document, document.body, ...Array.from(document.querySelectorAll('.cards')), ...Array.from(document.querySelectorAll('.group'))];
     
