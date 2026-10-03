@@ -78,11 +78,6 @@ function createBtn() {
     switchLabel.appendChild(checkbox);
     switchLabel.appendChild(slider);
     btnWrap.appendChild(switchLabel);
-    
-    const spinnerWrap = document.createElement('div');
-    spinnerWrap.className = 'clarity-spinner-container';
-    spinnerWrap.innerHTML = '<div class="clarity-spinner"></div><span class="clarity-spinner-text">Syncing...</span>';
-    btnWrap.appendChild(spinnerWrap);
 
     return btnWrap;
 }
@@ -247,13 +242,23 @@ let updateTimeout = null;
 let spinnerTimeout = null;
 
 function showSpinner() {
-    const spinner = document.querySelector('.clarity-spinner-container');
-    if (spinner) spinner.classList.add('is-loading');
+    let spinner = document.querySelector('.clarity-spinner-container');
+    if (!spinner) {
+        const container = document.querySelector('.container') || document.body;
+        spinner = document.createElement('div');
+        spinner.className = 'clarity-spinner-container';
+        spinner.innerHTML = '<div class="clarity-spinner"></div><span class="clarity-spinner-text">Clarity is syncing season data...</span>';
+        container.appendChild(spinner);
+    }
+    
+    spinner.classList.add('is-loading');
+    document.body.classList.add('clarity-syncing'); // Forces cards to position: fixed so they load
     
     if (spinnerTimeout) clearTimeout(spinnerTimeout);
     spinnerTimeout = setTimeout(() => {
         const s = document.querySelector('.clarity-spinner-container');
         if (s) s.classList.remove('is-loading');
+        document.body.classList.remove('clarity-syncing'); // Removes position: fixed, placing them back in grid
     }, 1500); // 1.5s of no DOM updates means it's done
 }
 

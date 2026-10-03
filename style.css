@@ -1,5 +1,6 @@
-/* Hide unmarked anime by default, overridden by body.hide-unmarked */
-body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe) {
+/* Hide unmarked anime by default, overridden by body.hide-unmarked or body.clarity-syncing */
+body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe),
+body.clarity-syncing .media-card:not(.is-watching):not(.is-maybe) {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -12,7 +13,8 @@ body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe) {
 }
 
 /* Hide empty categories without using display: none to preserve lazy loading */
-.anichart-hidden-category {
+body.hide-unmarked .anichart-hidden-category,
+body.clarity-syncing .anichart-hidden-category {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -24,6 +26,36 @@ body.hide-unmarked .media-card:not(.is-watching):not(.is-maybe) {
   margin: 0 !important;
   border: none !important;
   pointer-events: none !important;
+}
+
+/* Spinner CSS */
+.clarity-spinner-container {
+  display: none; /* Replaced by flex when active */
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  width: 100%;
+  clear: both;
+}
+.clarity-spinner-container.is-loading {
+  display: flex;
+}
+.clarity-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ccc;
+  border-top-color: #2e7d32;
+  border-radius: 50%;
+  animation: clarity-spin 1s linear infinite;
+}
+.clarity-spinner-text {
+  font-size: 1.1rem;
+  color: #888;
+  font-weight: bold;
+}
+@keyframes clarity-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Sorting: Push watching and maybe to the front of the grid */
@@ -131,34 +163,6 @@ input:checked + .clarity-slider:before {
   transform: translateX(18px);
 }
 
-/* Spinner CSS */
-.clarity-spinner-container {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 15px;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
-.clarity-spinner-container.is-loading {
-  opacity: 1;
-}
-.clarity-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #ccc;
-  border-top-color: #2e7d32;
-  border-radius: 50%;
-  animation: clarity-spin 1s linear infinite;
-}
-.clarity-spinner-text {
-  font-size: 0.85rem;
-  color: #888;
-  font-weight: normal;
-}
-@keyframes clarity-spin {
-  to { transform: rotate(360deg); }
-}
+
 
 
