@@ -267,19 +267,22 @@ const observer = new MutationObserver((mutations) => {
         updateTimeout = setTimeout(() => {
             updateCards();
             injectToggle();
+            // Chain reaction: every time a batch of cards finishes loading, we dispatch 
+            // a scroll event to instantly force Anichart to fetch the next batch.
+            window.dispatchEvent(new CustomEvent('scroll'));
         }, 100);
     }
 });
 
 function forceAutoLoad() {
     // We already moved the hidden elements to position: fixed via CSS!
-    // But Anichart might only check for intersections on 'scroll' events.
-    // So we just dispatch a few scroll events transparently without actually moving the page!
-    for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('scroll'));
-        }, i * 200);
-    }
+    // Dispatch scroll events periodically for the first 10 seconds to prime the lazy load queue
+    let count = 0;
+    const interval = setInterval(() => {
+        window.dispatchEvent(new CustomEvent('scroll'));
+        count++;
+        if (count > 40) clearInterval(interval); // 40 * 250ms = 10 seconds
+    }, 250);
 }
 
 window.addEventListener('load', () => {
